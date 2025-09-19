@@ -1,5 +1,3 @@
-import type { Timestamp } from "firebase/firestore";
-
 export type Criterion = {
   id: number;
   name: string;
@@ -12,7 +10,6 @@ export type EvaluationData = {
   comments: string;
   totalScore: number;
   timestamp: Date;
-  teamLeaderName: string;
 };
 
 export type SubmissionData = {

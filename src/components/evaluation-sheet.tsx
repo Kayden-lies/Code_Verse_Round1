@@ -27,7 +27,6 @@ const DEFAULT_EVALUATION_ID = "default_evaluation";
 
 export default function EvaluationSheet() {
     const [submissionId, setSubmissionId] = useState("");
-    const [teamLeaderName, setTeamLeaderName] = useState("");
     const [scores, setScores] = useState<{ [key: string]: number }>({});
     const [comments, setComments] = useState("");
     const [status, setStatus] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
@@ -39,7 +38,6 @@ export default function EvaluationSheet() {
     const clearForm = useCallback(() => {
         setScores({});
         setComments("");
-        setTeamLeaderName("");
     }, []);
 
     useEffect(() => {
@@ -62,7 +60,6 @@ export default function EvaluationSheet() {
                 if (myEvaluation) {
                     setScores(myEvaluation.scores || {});
                     setComments(myEvaluation.comments || "");
-                    setTeamLeaderName(myEvaluation.teamLeaderName || "");
                     setStatus({ message: 'Evaluation loaded successfully!', type: 'success' });
                 } else {
                     clearForm();
@@ -117,7 +114,6 @@ export default function EvaluationSheet() {
             comments,
             totalScore,
             timestamp: new Date(),
-            teamLeaderName: teamLeaderName
         };
 
         try {
@@ -179,17 +175,7 @@ export default function EvaluationSheet() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">2. Team Leader Name</h2>
-                    <div className="mb-4">
-                        <Input
-                            id="team-leader-name"
-                            placeholder="Enter Team Leader Name"
-                            className="text-base p-6"
-                            value={teamLeaderName}
-                            onChange={(e) => setTeamLeaderName(e.target.value)}
-                        />
-                    </div>
-                    <h2 className="text-2xl font-bold tracking-tight">3. Evaluation Criteria</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">2. Evaluation Criteria</h2>
                     <div className="overflow-x-auto rounded-lg border">
                         <Table>
                             <TableHeader>
@@ -235,7 +221,7 @@ export default function EvaluationSheet() {
 
                 <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold tracking-tight">4. Scoring Method</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">3. Scoring Method</h2>
                         <ul className="list-disc list-inside text-muted-foreground space-y-2">
                             <li>Each criterion is scored on a 1-10 scale by each judge.</li>
                             <li>Score &times; weightage &times; 10 = weighted score.</li>
@@ -250,7 +236,7 @@ export default function EvaluationSheet() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">5. Review and Notes</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">4. Review and Notes</h2>
                     <Textarea
                         id="comments"
                         className="min-h-[150px] text-base"
