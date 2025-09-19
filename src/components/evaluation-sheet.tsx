@@ -22,7 +22,8 @@ const criteria: Criterion[] = [
     { id: 7, name: 'Video Quality & Communication', description: 'Clarity of narration, visuals, time management, and engagement.', weightage: 0.10 },
 ];
 
-const DEFAULT_JUDGE_ID = "default_judge";
+const DEFAULT_EVALUATION_ID = "default_evaluation";
+
 
 export default function EvaluationSheet() {
     const [submissionId, setSubmissionId] = useState("");
@@ -56,7 +57,7 @@ export default function EvaluationSheet() {
         const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data() as SubmissionData;
-                const myEvaluation = data.evaluations?.[DEFAULT_JUDGE_ID];
+                const myEvaluation = data.evaluations?.[DEFAULT_EVALUATION_ID];
                 
                 if (myEvaluation) {
                     setScores(myEvaluation.scores || {});
@@ -127,7 +128,7 @@ export default function EvaluationSheet() {
             if (!existingData.evaluations) {
                 existingData.evaluations = {};
             }
-            existingData.evaluations[DEFAULT_JUDGE_ID] = evaluationData;
+            existingData.evaluations[DEFAULT_EVALUATION_ID] = evaluationData;
             
             await setDoc(docRef, existingData);
 
