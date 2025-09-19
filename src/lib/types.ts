@@ -11,7 +11,6 @@ export type EvaluationData = {
   scores: { [key: string]: number };
   comments: string;
   totalScore: number;
-  judgeName: string;
   timestamp: Date;
   teamLeaderName: string;
 };

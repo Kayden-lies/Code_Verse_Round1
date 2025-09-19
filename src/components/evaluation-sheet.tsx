@@ -22,8 +22,9 @@ const criteria: Criterion[] = [
     { id: 7, name: 'Video Quality & Communication', description: 'Clarity of narration, visuals, time management, and engagement.', weightage: 0.10 },
 ];
 
+const DEFAULT_JUDGE_ID = "default_judge";
+
 export default function EvaluationSheet() {
-    const [judgeName, setJudgeName] = useState("");
     const [submissionId, setSubmissionId] = useState("");
     const [teamLeaderName, setTeamLeaderName] = useState("");
     const [scores, setScores] = useState<{ [key: string]: number }>({});
@@ -41,13 +42,9 @@ export default function EvaluationSheet() {
     }, []);
 
     useEffect(() => {
-        if (!submissionId || !judgeName) {
+        if (!submissionId) {
             setIsLoading(false);
-            if (!judgeName) {
-                setStatus({ message: "Please enter your name to begin.", type: "info" });
-            } else if (!submissionId) {
-                setStatus({ message: "Enter a valid Team Name to load data.", type: "info" });
-            }
+            setStatus({ message: "Enter a valid Team Name to load data.", type: "info" });
             return;
         }
 
@@ -59,7 +56,7 @@ export default function EvaluationSheet() {
         const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data() as SubmissionData;
-                const myEvaluation = data.evaluations?.[judgeName];
+                const myEvaluation = data.evaluations?.[DEFAULT_JUDGE_ID];
                 
                 if (myEvaluation) {
                     setScores(myEvaluation.scores || {});
@@ -68,7 +65,7 @@ export default function EvaluationSheet() {
                     setStatus({ message: 'Evaluation loaded successfully!', type: 'success' });
                 } else {
                     clearForm();
-                    setStatus({ message: 'No previous evaluation found for this submission under your name. You can begin a new one.', type: 'info' });
+                    setStatus({ message: 'No previous evaluation found for this submission. You can begin a new one.', type: 'info' });
                 }
             } else {
                 clearForm();
@@ -86,7 +83,7 @@ export default function EvaluationSheet() {
         });
 
         return () => unsubscribeSnapshot();
-    }, [submissionId, judgeName, toast, clearForm]);
+    }, [submissionId, toast, clearForm]);
 
     const handleScoreChange = (id: number, value: string) => {
         const newScore = Math.max(0, Math.min(10, Number(value)));
@@ -110,10 +107,6 @@ export default function EvaluationSheet() {
             setStatus({ message: 'Please enter a Team Name to save.', type: 'error' });
             return;
         }
-        if (!judgeName) {
-            setStatus({ message: 'Please enter your Judge Name to save.', type: 'error' });
-            return;
-        }
 
         setIsSaving(true);
         setStatus({ message: 'Saving evaluation...', type: 'info' });
@@ -122,7 +115,6 @@ export default function EvaluationSheet() {
             scores,
             comments,
             totalScore,
-            judgeName: judgeName,
             timestamp: new Date(),
             teamLeaderName: teamLeaderName
         };
@@ -135,7 +127,7 @@ export default function EvaluationSheet() {
             if (!existingData.evaluations) {
                 existingData.evaluations = {};
             }
-            existingData.evaluations[judgeName] = evaluationData;
+            existingData.evaluations[DEFAULT_JUDGE_ID] = evaluationData;
             
             await setDoc(docRef, existingData);
 
@@ -169,18 +161,7 @@ export default function EvaluationSheet() {
             </CardHeader>
             <CardContent className="space-y-12 p-6 md:p-8">
                 <div className="space-y-4">
-                     <h2 className="text-2xl font-bold tracking-tight">1. Judge Name</h2>
-                    <Input
-                        id="judge-name"
-                        placeholder="Enter Your Name"
-                        className="text-base p-6"
-                        value={judgeName}
-                        onChange={(e) => setJudgeName(e.target.value)}
-                    />
-                </div>
-
-                <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">2. Team Name</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">1. Team Name</h2>
                     <div className="flex flex-col md:flex-row items-center gap-4">
                         <Input
                             id="submission-id"
@@ -189,7 +170,7 @@ export default function EvaluationSheet() {
                             value={submissionId}
                             onChange={(e) => setSubmissionId(e.target.value)}
                         />
-                         <Button onClick={handleSaveEvaluation} disabled={isSaving || !submissionId || !judgeName} className="w-full md:w-auto px-8 py-6 text-base">
+                         <Button onClick={handleSaveEvaluation} disabled={isSaving || !submissionId} className="w-full md:w-auto px-8 py-6 text-base">
                             {isSaving ? <Loader2 className="animate-spin" /> : 'Save Evaluation'}
                         </Button>
                     </div>
@@ -197,7 +178,7 @@ export default function EvaluationSheet() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">3. Team Leader Name</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">2. Team Leader Name</h2>
                     <div className="mb-4">
                         <Input
                             id="team-leader-name"
@@ -207,7 +188,7 @@ export default function EvaluationSheet() {
                             onChange={(e) => setTeamLeaderName(e.target.value)}
                         />
                     </div>
-                    <h2 className="text-2xl font-bold tracking-tight">4. Evaluation Criteria</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">3. Evaluation Criteria</h2>
                     <div className="overflow-x-auto rounded-lg border">
                         <Table>
                             <TableHeader>
@@ -253,7 +234,7 @@ export default function EvaluationSheet() {
 
                 <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold tracking-tight">5. Scoring Method</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">4. Scoring Method</h2>
                         <ul className="list-disc list-inside text-muted-foreground space-y-2">
                             <li>Each criterion is scored on a 1-10 scale by each judge.</li>
                             <li>Score &times; weightage &times; 10 = weighted score.</li>
@@ -268,7 +249,7 @@ export default function EvaluationSheet() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">6. Review and Notes</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">5. Review and Notes</h2>
                     <Textarea
                         id="comments"
                         className="min-h-[150px] text-base"
