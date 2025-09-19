@@ -13,6 +13,7 @@ export type EvaluationData = {
   totalScore: number;
   judgeId: string;
   timestamp: Date;
+  teamLeaderName: string;
 };
 
 export type SubmissionData = {

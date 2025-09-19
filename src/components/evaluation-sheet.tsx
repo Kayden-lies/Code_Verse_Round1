@@ -26,6 +26,7 @@ const criteria: Criterion[] = [
 export default function EvaluationSheet() {
     const [user, setUser] = useState<User | null>(null);
     const [submissionId, setSubmissionId] = useState("");
+    const [teamLeaderName, setTeamLeaderName] = useState("");
     const [scores, setScores] = useState<{ [key: string]: number }>({});
     const [comments, setComments] = useState("");
     const [status, setStatus] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
@@ -57,6 +58,7 @@ export default function EvaluationSheet() {
     const clearForm = useCallback(() => {
         setScores({});
         setComments("");
+        setTeamLeaderName("");
     }, []);
 
     useEffect(() => {
@@ -81,6 +83,7 @@ export default function EvaluationSheet() {
                 if (myEvaluation) {
                     setScores(myEvaluation.scores || {});
                     setComments(myEvaluation.comments || "");
+                    setTeamLeaderName(myEvaluation.teamLeaderName || "");
                     setStatus({ message: 'Evaluation loaded successfully!', type: 'success' });
                 } else {
                     clearForm();
@@ -140,6 +143,7 @@ export default function EvaluationSheet() {
             totalScore,
             judgeId: user.uid,
             timestamp: new Date(),
+            teamLeaderName: teamLeaderName
         };
 
         try {
@@ -187,7 +191,7 @@ export default function EvaluationSheet() {
             </CardHeader>
             <CardContent className="space-y-12 p-6 md:p-8">
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">1. Select Submission</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">1. Team Name</h2>
                     <div className="flex flex-col md:flex-row items-center gap-4">
                         <Input
                             id="submission-id"
@@ -205,6 +209,15 @@ export default function EvaluationSheet() {
 
                 <div className="space-y-4">
                     <h2 className="text-2xl font-bold tracking-tight">2. Evaluation Criteria</h2>
+                    <div className="mb-4">
+                        <Input
+                            id="team-leader-name"
+                            placeholder="Enter Team Leader Name"
+                            className="text-base p-6"
+                            value={teamLeaderName}
+                            onChange={(e) => setTeamLeaderName(e.target.value)}
+                        />
+                    </div>
                     <div className="overflow-x-auto rounded-lg border">
                         <Table>
                             <TableHeader>
@@ -267,7 +280,7 @@ export default function EvaluationSheet() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">4. Comments & Feedback</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">4. Review and Notes</h2>
                     <Textarea
                         id="comments"
                         className="min-h-[150px] text-base"
