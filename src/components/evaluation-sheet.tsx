@@ -30,7 +30,7 @@ export default function EvaluationSheet() {
     const [comments, setComments] = useState("");
     const [status, setStatus] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
     const { toast } = useToast();
 
@@ -45,7 +45,7 @@ export default function EvaluationSheet() {
             setIsLoading(false);
             if (!judgeName) {
                 setStatus({ message: "Please enter your name to begin.", type: "info" });
-            } else if (submissionId) {
+            } else if (!submissionId) {
                 setStatus({ message: "Enter a valid Team Name to load data.", type: "info" });
             }
             return;
@@ -221,14 +221,8 @@ export default function EvaluationSheet() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {isLoading && (!submissionId || !judgeName) ? (
-                                     criteria.map(c => (
-                                        <TableRow key={c.id}><TableCell colSpan={6} className="h-20 text-center">Enter your name and a team name to begin.</TableCell></TableRow>
-                                    ))
-                                ) : isLoading ? (
-                                    criteria.map(c => (
-                                        <TableRow key={c.id}><TableCell colSpan={6} className="h-20 text-center">Loading criteria...</TableCell></TableRow>
-                                    ))
+                                {isLoading ? (
+                                    <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell></TableRow>
                                 ) : (
                                     criteria.map(item => (
                                         <TableRow key={item.id}>
