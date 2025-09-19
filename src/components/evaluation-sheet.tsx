@@ -208,7 +208,7 @@ export default function EvaluationSheet() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">2. Evaluation Criteria</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">2. Team Leader Name</h2>
                     <div className="mb-4">
                         <Input
                             id="team-leader-name"
@@ -218,6 +218,7 @@ export default function EvaluationSheet() {
                             onChange={(e) => setTeamLeaderName(e.target.value)}
                         />
                     </div>
+                    <h2 className="text-2xl font-bold tracking-tight">3. Evaluation Criteria</h2>
                     <div className="overflow-x-auto rounded-lg border">
                         <Table>
                             <TableHeader>
@@ -265,7 +266,7 @@ export default function EvaluationSheet() {
 
                 <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold tracking-tight">3. Scoring Method</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">4. Scoring Method</h2>
                         <ul className="list-disc list-inside text-muted-foreground space-y-2">
                             <li>Each criterion is scored on a 1-10 scale by each judge.</li>
                             <li>Score &times; weightage &times; 10 = weighted score.</li>
@@ -280,7 +281,7 @@ export default function EvaluationSheet() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">4. Review and Notes</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">5. Review and Notes</h2>
                     <Textarea
                         id="comments"
                         className="min-h-[150px] text-base"
