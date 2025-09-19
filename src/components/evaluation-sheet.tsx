@@ -65,7 +65,7 @@ export default function EvaluationSheet() {
         if (!submissionId || !user) {
             setIsLoading(false);
             if (submissionId) {
-                setStatus({ message: "Enter a valid Submission ID to begin.", type: "info" });
+                setStatus({ message: "Enter a valid Team Name to begin.", type: "info" });
             }
             return;
         }
@@ -126,7 +126,7 @@ export default function EvaluationSheet() {
 
     const handleSaveEvaluation = async () => {
         if (!submissionId) {
-            setStatus({ message: 'Please enter a Submission ID to save.', type: 'error' });
+            setStatus({ message: 'Please enter a Team Name to save.', type: 'error' });
             return;
         }
         if (!user) {
@@ -195,7 +195,7 @@ export default function EvaluationSheet() {
                     <div className="flex flex-col md:flex-row items-center gap-4">
                         <Input
                             id="submission-id"
-                            placeholder="Enter Submission ID (e.g., Team-Awesome)"
+                            placeholder="Enter Team Name (e.g., Team-Awesome)"
                             className="flex-grow text-base p-6"
                             value={submissionId}
                             onChange={(e) => setSubmissionId(e.target.value)}
