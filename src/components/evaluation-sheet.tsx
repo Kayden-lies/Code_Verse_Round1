@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { doc, setDoc, onSnapshot, getDoc, Timestamp } from "firebase/firestore";
+import { doc, setDoc, onSnapshot, getDoc } from "firebase/firestore";
 import { db, appId } from "@/lib/firebase";
 import type { Criterion, EvaluationData, SubmissionData } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
