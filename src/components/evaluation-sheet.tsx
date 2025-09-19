@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { doc, setDoc, onSnapshot, getDoc, Timestamp } from "firebase/firestore";
-import { getAuth, signInAnonymously, onAuthStateChanged, User } from "firebase/auth";
-import { db, auth, appId } from "@/lib/firebase";
+import { db, appId } from "@/lib/firebase";
 import type { Criterion, EvaluationData, SubmissionData } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,7 +23,7 @@ const criteria: Criterion[] = [
 ];
 
 export default function EvaluationSheet() {
-    const [user, setUser] = useState<User | null>(null);
+    const [judgeName, setJudgeName] = useState("");
     const [submissionId, setSubmissionId] = useState("");
     const [teamLeaderName, setTeamLeaderName] = useState("");
     const [scores, setScores] = useState<{ [key: string]: number }>({});
@@ -35,26 +34,6 @@ export default function EvaluationSheet() {
 
     const { toast } = useToast();
 
-    useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-            } else {
-                try {
-                    await signInAnonymously(auth);
-                } catch (error) {
-                    console.error("Error during anonymous authentication: ", error);
-                    toast({
-                        variant: "destructive",
-                        title: "Authentication Failed",
-                        description: "Could not sign in anonymously. Please refresh the page.",
-                    });
-                }
-            }
-        });
-        return () => unsubscribeAuth();
-    }, [toast]);
-    
     const clearForm = useCallback(() => {
         setScores({});
         setComments("");
@@ -62,10 +41,12 @@ export default function EvaluationSheet() {
     }, []);
 
     useEffect(() => {
-        if (!submissionId || !user) {
+        if (!submissionId || !judgeName) {
             setIsLoading(false);
-            if (submissionId) {
-                setStatus({ message: "Enter a valid Team Name to begin.", type: "info" });
+            if (!judgeName) {
+                setStatus({ message: "Please enter your name to begin.", type: "info" });
+            } else if (submissionId) {
+                setStatus({ message: "Enter a valid Team Name to load data.", type: "info" });
             }
             return;
         }
@@ -78,7 +59,7 @@ export default function EvaluationSheet() {
         const unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data() as SubmissionData;
-                const myEvaluation = data.evaluations?.[user.uid];
+                const myEvaluation = data.evaluations?.[judgeName];
                 
                 if (myEvaluation) {
                     setScores(myEvaluation.scores || {});
@@ -87,7 +68,7 @@ export default function EvaluationSheet() {
                     setStatus({ message: 'Evaluation loaded successfully!', type: 'success' });
                 } else {
                     clearForm();
-                    setStatus({ message: 'No previous evaluation found for this submission. You can begin a new one.', type: 'info' });
+                    setStatus({ message: 'No previous evaluation found for this submission under your name. You can begin a new one.', type: 'info' });
                 }
             } else {
                 clearForm();
@@ -105,7 +86,7 @@ export default function EvaluationSheet() {
         });
 
         return () => unsubscribeSnapshot();
-    }, [submissionId, user, toast, clearForm]);
+    }, [submissionId, judgeName, toast, clearForm]);
 
     const handleScoreChange = (id: number, value: string) => {
         const newScore = Math.max(0, Math.min(10, Number(value)));
@@ -129,8 +110,8 @@ export default function EvaluationSheet() {
             setStatus({ message: 'Please enter a Team Name to save.', type: 'error' });
             return;
         }
-        if (!user) {
-            setStatus({ message: 'Authentication not ready. Please wait.', type: 'error' });
+        if (!judgeName) {
+            setStatus({ message: 'Please enter your Judge Name to save.', type: 'error' });
             return;
         }
 
@@ -141,7 +122,7 @@ export default function EvaluationSheet() {
             scores,
             comments,
             totalScore,
-            judgeId: user.uid,
+            judgeName: judgeName,
             timestamp: new Date(),
             teamLeaderName: teamLeaderName
         };
@@ -154,7 +135,7 @@ export default function EvaluationSheet() {
             if (!existingData.evaluations) {
                 existingData.evaluations = {};
             }
-            existingData.evaluations[user.uid] = evaluationData;
+            existingData.evaluations[judgeName] = evaluationData;
             
             await setDoc(docRef, existingData);
 
@@ -185,13 +166,21 @@ export default function EvaluationSheet() {
             <CardHeader className="text-center">
                 <CardTitle className="text-4xl font-bold">Hackathon Submission Evaluation</CardTitle>
                 <CardDescription className="text-lg">Use this sheet to evaluate team submissions and save the data.</CardDescription>
-                <p className="text-sm text-muted-foreground pt-2">
-                    Your Judge ID: <span className="font-mono bg-muted px-2 py-1 rounded">{user ? user.uid : "Loading..."}</span>
-                </p>
             </CardHeader>
             <CardContent className="space-y-12 p-6 md:p-8">
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">1. Team Name</h2>
+                     <h2 className="text-2xl font-bold tracking-tight">1. Judge Name</h2>
+                    <Input
+                        id="judge-name"
+                        placeholder="Enter Your Name"
+                        className="text-base p-6"
+                        value={judgeName}
+                        onChange={(e) => setJudgeName(e.target.value)}
+                    />
+                </div>
+
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold tracking-tight">2. Team Name</h2>
                     <div className="flex flex-col md:flex-row items-center gap-4">
                         <Input
                             id="submission-id"
@@ -200,7 +189,7 @@ export default function EvaluationSheet() {
                             value={submissionId}
                             onChange={(e) => setSubmissionId(e.target.value)}
                         />
-                         <Button onClick={handleSaveEvaluation} disabled={isSaving || !submissionId} className="w-full md:w-auto px-8 py-6 text-base">
+                         <Button onClick={handleSaveEvaluation} disabled={isSaving || !submissionId || !judgeName} className="w-full md:w-auto px-8 py-6 text-base">
                             {isSaving ? <Loader2 className="animate-spin" /> : 'Save Evaluation'}
                         </Button>
                     </div>
@@ -208,7 +197,7 @@ export default function EvaluationSheet() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">2. Team Leader Name</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">3. Team Leader Name</h2>
                     <div className="mb-4">
                         <Input
                             id="team-leader-name"
@@ -218,7 +207,7 @@ export default function EvaluationSheet() {
                             onChange={(e) => setTeamLeaderName(e.target.value)}
                         />
                     </div>
-                    <h2 className="text-2xl font-bold tracking-tight">3. Evaluation Criteria</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">4. Evaluation Criteria</h2>
                     <div className="overflow-x-auto rounded-lg border">
                         <Table>
                             <TableHeader>
@@ -232,7 +221,11 @@ export default function EvaluationSheet() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {isLoading ? (
+                                {isLoading && (!submissionId || !judgeName) ? (
+                                     criteria.map(c => (
+                                        <TableRow key={c.id}><TableCell colSpan={6} className="h-20 text-center">Enter your name and a team name to begin.</TableCell></TableRow>
+                                    ))
+                                ) : isLoading ? (
                                     criteria.map(c => (
                                         <TableRow key={c.id}><TableCell colSpan={6} className="h-20 text-center">Loading criteria...</TableCell></TableRow>
                                     ))
@@ -266,7 +259,7 @@ export default function EvaluationSheet() {
 
                 <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold tracking-tight">4. Scoring Method</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">5. Scoring Method</h2>
                         <ul className="list-disc list-inside text-muted-foreground space-y-2">
                             <li>Each criterion is scored on a 1-10 scale by each judge.</li>
                             <li>Score &times; weightage &times; 10 = weighted score.</li>
@@ -281,7 +274,7 @@ export default function EvaluationSheet() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">5. Review and Notes</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">6. Review and Notes</h2>
                     <Textarea
                         id="comments"
                         className="min-h-[150px] text-base"
